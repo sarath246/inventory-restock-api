@@ -1,4 +1,4 @@
 package com.inventory.service;
 
-public class InventoryRestockService {
+public interface InventoryRestockService {
 }
