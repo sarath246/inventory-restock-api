@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 @Service
 public class InventoryRestockServiceImpl implements InventoryRestockService {
 
+    private static final List<String> PRIORITY_ORDER = Arrays.asList("HIGH", "MEDIUM", "LOW");
+
     @Override
     public List<InventoryRestockResponse> calculateRestock(InventoryRestockProductsRequest productsRequest) {
 
@@ -19,7 +21,7 @@ public class InventoryRestockServiceImpl implements InventoryRestockService {
                 .stream()
                 .filter(this::needsRestock)
                 .map(this::mapToResponse)
-                .sorted(Comparator.comparing(InventoryRestockResponse::getPriorityLevel)
+                .sorted(Comparator.comparing((InventoryRestockResponse r) -> PRIORITY_ORDER.indexOf(r.getPriorityLevel()))
                         .thenComparing(r -> r.getProductName().toLowerCase()))
                 .collect(Collectors.toList());
     }
@@ -33,7 +35,8 @@ public class InventoryRestockServiceImpl implements InventoryRestockService {
         var restockResponse = new InventoryRestockResponse();
         restockResponse.setProductId(restockRequest.productId());
         restockResponse.setProductName(restockRequest.productName());
-        restockResponse.setRestockQuantity(restockRequest.minimumRequiredStock() - restockRequest.currentStock());
+        int restockQuantity = Math.max(0, restockRequest.minimumRequiredStock() - restockRequest.currentStock());
+        restockResponse.setRestockQuantity(restockQuantity);
         restockResponse.setPriorityLevel(determinePriorityLevel(restockRequest));
         return restockResponse;
     }
